@@ -77,6 +77,16 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
+// React to dark/light mode
+let backgroundColor = "rgb(255 255 255 / 8%)";
+let keyColor = "black";
+
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (function toggleDarkMode(event) {
+  backgroundColor = event.matches ? "rgb(0 0 0 / 8%)" : "rgb(255 255 255 / 8%)";
+  keyColor = event.matches ? "white" : "black";
+  return toggleDarkMode;
+})(window.matchMedia("(prefers-color-scheme: dark)")));
+
 // Display detected keys spatially to screen
 window.requestAnimationFrame((startTime) => {
   let previousTime = startTime;
@@ -88,10 +98,12 @@ window.requestAnimationFrame((startTime) => {
     previousTime = currentTime;
 
     context.save();
-    context.fillStyle = "rgb(255 255 255 / 8%)";
+    context.fillStyle = backgroundColor;
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.restore();
     
+    context.save();
+    context.fillStyle = keyColor;
     while (keyQueue.start !== keyQueue.end) {
       const [x, y] = keyMap.get(keyQueue.pop()) ?? [-1, -1];
       context.fillRect(
@@ -101,6 +113,7 @@ window.requestAnimationFrame((startTime) => {
         canvas.height / KEY_COLUMNS
       );
     }
+    context.restore();
   });
 });
 /****************************************************************/
