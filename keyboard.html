@@ -10,12 +10,74 @@
 const canvas = document.querySelector("canvas");
 const context = canvas.getContext("2d");
 
-window.addEventListener("resize", (function resizeCanvas(){
+// Circular buffer queue to hold multiple key codes
+// for the possibility of user pressing multiple
+// keys within the time span of a single frame
+const keyQueue = {
+  data: new Array(8),
+  start: 0,
+  end: 0,
+  push: function(value) {
+    if ((this.end + 1) % this.data.length === this.start) {
+      return;
+    }
+
+    this.data[this.end] = value;
+    this.end = (this.end + 1) % this.data.length;
+  },
+  pop: function() {
+    const poppedValue = this.data[this.start];
+    this.start = (this.start + 1) % this.data.length;
+    return poppedValue;
+  }
+};
+
+// Spatial mapping of key codes to areas on the screen
+const keyMap = new Map(
+  [
+    "1234567890"
+      .split("")
+      .map((digit) => "Digit" + digit)
+      .concat(["Minus", "Equal", "Backspace"]),
+    "QWERTYUIOP"
+      .split("")
+      .map((char) => "Key" + char)
+      .concat(["BracketLeft", "BracketRight", "Backslash"]),
+    "ASDFGHJKL"
+      .split("")
+      .map((char) => "Key" + char)
+      .concat(["Semicolon", "Quote", "Enter"]),
+    "ZXCVBNM"
+      .split("")
+      .map((char) => "Key" + char)
+      .concat(["Comma", "Period", "Slash", "ShiftRight"]),
+  ]
+    .flatMap((row, rowIndex) => 
+      row
+        .map((key, keyIndex) =>
+          [key, [keyIndex + 0.5*rowIndex, rowIndex]]
+        )
+    )
+);
+
+const KEY_ROWS = 13.5;
+const KEY_COLUMNS = 4;
+
+// Resize canvas when page is resized
+window.addEventListener("resize", (function resizeCanvas() {
     canvas.width = document.documentElement.clientWidth;
     canvas.height = document.documentElement.clientHeight;
     return resizeCanvas;
 })());
 
+// Add detected keys to key queue
+window.addEventListener("keydown", (event) => {
+  if (keyMap.has(event.code)) {
+    keyQueue.push(event.code);
+  }
+});
+
+// Display detected keys spatially to screen
 window.requestAnimationFrame((startTime) => {
   let previousTime = startTime;
   let elapsedTime;
@@ -25,10 +87,20 @@ window.requestAnimationFrame((startTime) => {
     elapsedTime = currentTime - previousTime;
     previousTime = currentTime;
 
-    context.fillStyle = "green";
-    context.fillRect(10, 10, 100, 100);
-
-    // console.log(elapsedTime);
+    context.save();
+    context.fillStyle = "rgb(255 255 255 / 8%)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.restore();
+    
+    while (keyQueue.start !== keyQueue.end) {
+      const [x, y] = keyMap.get(keyQueue.pop()) ?? [-1, -1];
+      context.fillRect(
+        x * canvas.width / KEY_ROWS,
+        y * canvas.height / KEY_COLUMNS,
+        canvas.width / KEY_ROWS,
+        canvas.height / KEY_COLUMNS
+      );
+    }
   });
 });
 /****************************************************************/
