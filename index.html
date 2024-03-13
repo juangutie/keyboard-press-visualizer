@@ -72,13 +72,6 @@ keyMap.get("ShiftRight")[2] = 2;
 const KEY_ROWS = 13.5;
 const KEY_COLUMNS = 4;
 
-// Resize canvas when page is resized
-window.addEventListener("resize", (function resizeCanvas() {
-    canvas.width = document.documentElement.clientWidth;
-    canvas.height = document.documentElement.clientHeight;
-    return resizeCanvas;
-})());
-
 // Add detected keys to key queue
 window.addEventListener("keydown", (event) => {
   if (keyMap.has(event.code)) {
@@ -96,38 +89,44 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (fu
   return toggleDarkMode;
 })(window.matchMedia("(prefers-color-scheme: dark)")));
 
-// Display detected keys spatially to screen
-window.requestAnimationFrame(function setup() {
-  window.requestAnimationFrame(function draw() {
-    window.requestAnimationFrame(draw);
-
-    // Fade the whole screen
-    context.fillStyle = backgroundColor;
-    context.fillRect(0, 0, canvas.width, canvas.height);
+// Resize canvas when page is resized
+window.addEventListener("resize", (function resizeCanvas() {
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
     
-    // Draw any keys detected
-    if (keyQueue.start !== keyQueue.end) {
-      context.fillStyle = keyColor;
-
-      do {
-        const [x, y, w] = keyMap.get(keyQueue.pop()) ?? [-1, -1, 0];
-        context.fillRect(
-          x * canvas.width / KEY_ROWS,
-          y * canvas.height / KEY_COLUMNS,
-          w * canvas.width / KEY_ROWS,
-          canvas.height / KEY_COLUMNS
-        );
-      } while (keyQueue.start !== keyQueue.end)
-    }
-  });
-  
-  // Initialize the background color to prevent
-  // draw keys from leaving a permanent shadow
-  context.fillStyle = keyColor;
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = backgroundColor;
-  for (let i = 0; i < 64; ++i) {
+    // Initialize the background color to prevent
+    // drawn keys from leaving a permanent shadow
+    context.fillStyle = keyColor;
     context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = backgroundColor;
+    for (let i = 0; i < 64; ++i) {
+      context.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    return resizeCanvas;
+})());
+
+// Display detected keys spatially to screen
+window.requestAnimationFrame(function draw() {
+  window.requestAnimationFrame(draw);
+
+  // Fade the whole screen
+  context.fillStyle = backgroundColor;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw any keys detected
+  if (keyQueue.start !== keyQueue.end) {
+    context.fillStyle = keyColor;
+
+    do {
+      const [x, y, w] = keyMap.get(keyQueue.pop()) ?? [-1, -1, 0];
+      context.fillRect(
+        x * canvas.width / KEY_ROWS,
+        y * canvas.height / KEY_COLUMNS,
+        w * canvas.width / KEY_ROWS,
+        canvas.height / KEY_COLUMNS
+      );
+    } while (keyQueue.start !== keyQueue.end)
   }
 });
 /****************************************************************************/
