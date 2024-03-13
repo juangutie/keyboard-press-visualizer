@@ -55,10 +55,19 @@ const keyMap = new Map(
     .flatMap((row, rowIndex) => 
       row
         .map((key, keyIndex) =>
-          [key, [keyIndex + 0.5*rowIndex, rowIndex]]
+          [key, [keyIndex + 0.5*rowIndex, rowIndex, 1]]
         )
     )
 );
+
+["KeyQ", "KeyA", "KeyZ"].forEach((key, rowIndex) => {
+  keyMap.get(key)[0] = 0;
+  keyMap.get(key)[2] = 1.5 + 0.5*rowIndex;
+});
+
+keyMap.get("Backspace")[2] = 1.5;
+keyMap.get("Enter")[2] = 1.5;
+keyMap.get("ShiftRight")[2] = 2;
 
 const KEY_ROWS = 13.5;
 const KEY_COLUMNS = 4;
@@ -102,11 +111,11 @@ window.requestAnimationFrame((startTime) => {
     
     context.fillStyle = keyColor;
     while (keyQueue.start !== keyQueue.end) {
-      const [x, y] = keyMap.get(keyQueue.pop()) ?? [-1, -1];
+      const [x, y, w] = keyMap.get(keyQueue.pop()) ?? [-1, -1, 0];
       context.fillRect(
         x * canvas.width / KEY_ROWS,
         y * canvas.height / KEY_COLUMNS,
-        canvas.width / KEY_ROWS,
+        w * canvas.width / KEY_ROWS,
         canvas.height / KEY_COLUMNS
       );
     }
