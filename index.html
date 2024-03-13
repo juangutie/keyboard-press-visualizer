@@ -97,29 +97,38 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (fu
 })(window.matchMedia("(prefers-color-scheme: dark)")));
 
 // Display detected keys spatially to screen
-window.requestAnimationFrame((startTime) => {
-  let previousTime = startTime;
-  let elapsedTime;
-
-  window.requestAnimationFrame(function draw(currentTime) {
+window.requestAnimationFrame(function setup() {
+  window.requestAnimationFrame(function draw() {
     window.requestAnimationFrame(draw);
-    elapsedTime = currentTime - previousTime;
-    previousTime = currentTime;
 
+    // Fade the whole screen
     context.fillStyle = backgroundColor;
     context.fillRect(0, 0, canvas.width, canvas.height);
     
-    context.fillStyle = keyColor;
-    while (keyQueue.start !== keyQueue.end) {
-      const [x, y, w] = keyMap.get(keyQueue.pop()) ?? [-1, -1, 0];
-      context.fillRect(
-        x * canvas.width / KEY_ROWS,
-        y * canvas.height / KEY_COLUMNS,
-        w * canvas.width / KEY_ROWS,
-        canvas.height / KEY_COLUMNS
-      );
+    // Draw any keys detected
+    if (keyQueue.start !== keyQueue.end) {
+      context.fillStyle = keyColor;
+
+      do {
+        const [x, y, w] = keyMap.get(keyQueue.pop()) ?? [-1, -1, 0];
+        context.fillRect(
+          x * canvas.width / KEY_ROWS,
+          y * canvas.height / KEY_COLUMNS,
+          w * canvas.width / KEY_ROWS,
+          canvas.height / KEY_COLUMNS
+        );
+      } while (keyQueue.start !== keyQueue.end)
     }
   });
+  
+  // Initialize the background color to prevent
+  // draw keys from leaving a permanent shadow
+  context.fillStyle = keyColor;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = backgroundColor;
+  for (let i = 0; i < 64; ++i) {
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
 });
 /****************************************************************************/
     </script>
