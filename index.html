@@ -97,12 +97,9 @@ window.requestAnimationFrame((startTime) => {
     elapsedTime = currentTime - previousTime;
     previousTime = currentTime;
 
-    context.save();
     context.fillStyle = backgroundColor;
     context.fillRect(0, 0, canvas.width, canvas.height);
-    context.restore();
     
-    context.save();
     context.fillStyle = keyColor;
     while (keyQueue.start !== keyQueue.end) {
       const [x, y] = keyMap.get(keyQueue.pop()) ?? [-1, -1];
@@ -113,7 +110,6 @@ window.requestAnimationFrame((startTime) => {
         canvas.height / KEY_COLUMNS
       );
     }
-    context.restore();
   });
 });
 /****************************************************************/
