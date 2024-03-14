@@ -62,6 +62,11 @@ window.addEventListener("keyup", (event) => {
   keysPressed.delete(event.code);
 });
 
+// Clear recorded keys when window out of focus
+window.addEventListener("blur", (event) => {
+  keysPressed.clear();
+});
+
 // React to dark/light mode
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (function toggleDarkMode(event) {
   backgroundColor = event.matches ? DARK_MODE_BACKGROUND : LIGHT_MODE_BACKGROUND;
