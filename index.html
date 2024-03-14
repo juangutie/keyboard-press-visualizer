@@ -26,44 +26,29 @@ let keyColor;
 const keysPressed = new Set();
 
 // Spatial mapping of key codes to areas on the screen
-const keyMap = (function generateKeyMap() {
-  const keyMap = new Map([
-    [
-      'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7',
-      'Digit8', 'Digit9', 'Digit0', 'Minus', 'Equal', 'Backspace'
-    ],
-    [
-      'KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU', 
-      'KeyI', 'KeyO', 'KeyP', 'BracketLeft', 'BracketRight', 'Backslash'
-    ],
-    [
-      'KeyA', 'KeyS', 'KeyD', 'KeyF', 'KeyG', 'KeyH', 'KeyJ',
-      'KeyK', 'KeyL', 'Semicolon', 'Quote', 'Enter'
-    ],
-    [
-      'KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM',
-      'Comma', 'Period', 'Slash', 'ShiftRight'
-    ]
-  ]
-    .flatMap((row, rowIndex) => 
-      row
-        .map((key, keyIndex) =>
-          [key, [keyIndex + 0.5*rowIndex, rowIndex, 1]]
-        )
-    )
-  );
-    
-  ["KeyQ", "KeyA", "KeyZ"].forEach((key, rowIndex) => {
-    keyMap.get(key)[0] = 0;
-    keyMap.get(key)[2] = 1.5 + 0.5*rowIndex;
-  });
+const keyMap = new Map([
+  ["Digit1", [0, 0, 1]], ["Digit2", [1, 0, 1]], ["Digit3", [2, 0, 1]],
+  ["Digit4", [3, 0, 1]], ["Digit5", [4, 0, 1]], ["Digit6", [5, 0, 1]],
+  ["Digit7", [6, 0, 1]], ["Digit8", [7, 0, 1]], ["Digit9", [8, 0, 1]],
+  ["Digit0", [9, 0, 1]], ["Minus", [10, 0, 1]], ["Equal", [11, 0, 1]],
+  ["Backspace", [12, 0, 1.5]],
 
-  keyMap.get("Backspace")[2] = 1.5;
-  keyMap.get("Enter")[2] = 1.5;
-  keyMap.get("ShiftRight")[2] = 2;
+  ["KeyQ", [0, 1, 1.5]], ["KeyW", [1.5, 1, 1]], ["KeyE", [2.5, 1, 1]],
+  ["KeyR", [3.5, 1, 1]], ["KeyT", [4.5, 1, 1]], ["KeyY", [5.5, 1, 1]],
+  ["KeyU", [6.5, 1, 1]], ["KeyI", [7.5, 1, 1]], ["KeyO", [8.5, 1, 1]],
+  ["KeyP", [9.5, 1, 1]], ["BracketLeft", [10.5, 1, 1]], ["BracketRight", [11.5, 1, 1]],
+  ["Backslash", [12.5, 1, 1]],
 
-  return keyMap;
-})();
+  ["KeyA", [0, 2, 2]], ["KeyS", [2, 2, 1]], ["KeyD", [3, 2, 1]],
+  ["KeyF", [4, 2, 1]], ["KeyG", [5, 2, 1]], ["KeyH", [6, 2, 1]],
+  ["KeyJ", [7, 2, 1]], ["KeyK", [8, 2, 1]], ["KeyL", [9, 2, 1]],
+  ["Semicolon", [10, 2, 1]], ["Quote", [11, 2, 1]], ["Enter", [12, 2, 1.5]],
+
+  ["KeyZ", [0, 3, 2.5]], ["KeyX", [2.5, 3, 1]], ["KeyC", [3.5, 3, 1]],
+  ["KeyV", [4.5, 3, 1]], ["KeyB", [5.5, 3, 1]], ["KeyN", [6.5, 3, 1]],
+  ["KeyM", [7.5, 3, 1]], ["Comma", [8.5, 3, 1]], ["Period", [9.5, 3, 1]],
+  ["Slash", [10.5, 3, 1]], ["ShiftRight", [11.5, 3, 2]]
+]);
 
 // Record any keys pressed
 window.addEventListener("keydown", (event) => {
