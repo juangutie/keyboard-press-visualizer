@@ -10,47 +10,40 @@
 const canvas = document.querySelector("canvas");
 const context = canvas.getContext("2d");
 
-// Circular buffer queue to hold multiple key codes
-// for the possibility of user pressing multiple
-// keys within the time span of a single frame
-const keyQueue = {
-  data: new Array(16),
-  start: 0,
-  end: 0,
-  push: function(value) {
-    if ((this.end + 1) % this.data.length === this.start) {
-      return;
-    }
+// Total width and total height of keys for scaling
+const TOTAL_WIDTH = 13.5;
+const TOTAL_HEIGHT = 4;
 
-    this.data[this.end] = value;
-    this.end = (this.end + 1) % this.data.length;
-  },
-  pop: function() {
-    const poppedValue = this.data[this.start];
-    this.start = (this.start + 1) % this.data.length;
-    return poppedValue;
-  }
-};
+// Light mode / dark mode colors
+const LIGHT_MODE_BACKGROUND = "rgb(255 255 255 / 8%)";
+const DARK_MODE_BACKGROUND = "rgb(0 0 0 / 8%)";
+const LIGHT_MODE_KEY = "white"
+const DARK_MODE_KEY = "black"
+let backgroundColor;
+let keyColor;
+
+// Set of keys pressed down at any moment
+const keysPressed = new Set();
 
 // Spatial mapping of key codes to areas on the screen
-const keyMap = new Map(
-  [
-    "1234567890"
-      .split("")
-      .map((digit) => "Digit" + digit)
-      .concat(["Minus", "Equal", "Backspace"]),
-    "QWERTYUIOP"
-      .split("")
-      .map((char) => "Key" + char)
-      .concat(["BracketLeft", "BracketRight", "Backslash"]),
-    "ASDFGHJKL"
-      .split("")
-      .map((char) => "Key" + char)
-      .concat(["Semicolon", "Quote", "Enter"]),
-    "ZXCVBNM"
-      .split("")
-      .map((char) => "Key" + char)
-      .concat(["Comma", "Period", "Slash", "ShiftRight"]),
+const keyMap = (function generateKeyMap() {
+  const keyMap = new Map([
+    [
+      'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6', 'Digit7',
+      'Digit8', 'Digit9', 'Digit0', 'Minus', 'Equal', 'Backspace'
+    ],
+    [
+      'KeyQ', 'KeyW', 'KeyE', 'KeyR', 'KeyT', 'KeyY', 'KeyU', 
+      'KeyI', 'KeyO', 'KeyP', 'BracketLeft', 'BracketRight', 'Backslash'
+    ],
+    [
+      'KeyA', 'KeyS', 'KeyD', 'KeyF', 'KeyG', 'KeyH', 'KeyJ',
+      'KeyK', 'KeyL', 'Semicolon', 'Quote', 'Enter'
+    ],
+    [
+      'KeyZ', 'KeyX', 'KeyC', 'KeyV', 'KeyB', 'KeyN', 'KeyM',
+      'Comma', 'Period', 'Slash', 'ShiftRight'
+    ]
   ]
     .flatMap((row, rowIndex) => 
       row
@@ -58,34 +51,36 @@ const keyMap = new Map(
           [key, [keyIndex + 0.5*rowIndex, rowIndex, 1]]
         )
     )
-);
+  );
+    
+  ["KeyQ", "KeyA", "KeyZ"].forEach((key, rowIndex) => {
+    keyMap.get(key)[0] = 0;
+    keyMap.get(key)[2] = 1.5 + 0.5*rowIndex;
+  });
 
-["KeyQ", "KeyA", "KeyZ"].forEach((key, rowIndex) => {
-  keyMap.get(key)[0] = 0;
-  keyMap.get(key)[2] = 1.5 + 0.5*rowIndex;
-});
+  keyMap.get("Backspace")[2] = 1.5;
+  keyMap.get("Enter")[2] = 1.5;
+  keyMap.get("ShiftRight")[2] = 2;
 
-keyMap.get("Backspace")[2] = 1.5;
-keyMap.get("Enter")[2] = 1.5;
-keyMap.get("ShiftRight")[2] = 2;
+  return keyMap;
+})();
 
-const KEY_ROWS = 13.5;
-const KEY_COLUMNS = 4;
-
-// Add detected keys to key queue
+// Record any keys pressed
 window.addEventListener("keydown", (event) => {
   if (keyMap.has(event.code)) {
-    keyQueue.push(event.code);
+    keysPressed.add(event.code);
   }
 });
 
-// React to dark/light mode
-let backgroundColor = "rgb(255 255 255 / 8%)";
-let keyColor = "black";
+// Record any keys released
+window.addEventListener("keyup", (event) => {
+  keysPressed.delete(event.code);
+});
 
+// React to dark/light mode
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (function toggleDarkMode(event) {
-  backgroundColor = event.matches ? "rgb(0 0 0 / 8%)" : "rgb(255 255 255 / 8%)";
-  keyColor = event.matches ? "white" : "black";
+  backgroundColor = event.matches ? DARK_MODE_BACKGROUND : LIGHT_MODE_BACKGROUND;
+  keyColor = event.matches ? LIGHT_MODE_KEY : DARK_MODE_KEY;
   return toggleDarkMode;
 })(window.matchMedia("(prefers-color-scheme: dark)")));
 
@@ -115,18 +110,16 @@ window.requestAnimationFrame(function draw() {
   context.fillRect(0, 0, canvas.width, canvas.height);
   
   // Draw any keys detected
-  if (keyQueue.start !== keyQueue.end) {
-    context.fillStyle = keyColor;
+  context.fillStyle = keyColor;
 
-    do {
-      const [x, y, w] = keyMap.get(keyQueue.pop()) ?? [-1, -1, 0];
-      context.fillRect(
-        x * canvas.width / KEY_ROWS,
-        y * canvas.height / KEY_COLUMNS,
-        w * canvas.width / KEY_ROWS,
-        canvas.height / KEY_COLUMNS
-      );
-    } while (keyQueue.start !== keyQueue.end)
+  for (const key of keysPressed) {
+    const [x, y, w] = keyMap.get(key);
+    context.fillRect(
+      x * canvas.width / TOTAL_WIDTH,
+      y * canvas.height / TOTAL_HEIGHT,
+      w * canvas.width / TOTAL_WIDTH,
+      canvas.height / TOTAL_HEIGHT
+    );
   }
 });
 /****************************************************************************/
