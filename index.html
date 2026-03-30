@@ -8,6 +8,11 @@
     <canvas style="display:block"></canvas>
     <script>
 /****************************************************************************/
+navigator?.serviceWorker.register(
+    "/keyboard-press-visualizer/service-worker.js",
+    { scope: "/keyboard-press-visualizer/" }
+);
+
 const canvas = document.querySelector("canvas");
 const context = canvas.getContext("2d");
 
